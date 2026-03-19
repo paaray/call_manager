@@ -617,7 +617,7 @@ function logsFor(id) {
 
 function cardHtml(c, idx) {
   const [bg, fg] = av(c.name || '?');
-  const waNum = (c.whatsapp || c.phone || '').replace(/\D/g,'');
+  const waNum = String(c.whatsapp || c.phone || '').replace(/\D/g,'');
   const myLogs = logsFor(c.id);
   const statusCls = `s-${c.status||'active'}`;
   const statusLbl = (c.status||'active').charAt(0).toUpperCase()+(c.status||'active').slice(1);
