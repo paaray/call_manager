@@ -493,7 +493,7 @@ body::before {
 // ╔══════════════════════════════════════════════════════╗
 // ║  CONFIG — paste your Apps Script Web App URL below  ║
 // ╚══════════════════════════════════════════════════════╝
-const API_URL = 'https://script.google.com/macros/s/AKfycbza4PGTwUJMT8wdB5fs4eS7lnrehU65PwwZKNSeyzUJUlugn1t0fIIpETQHxqYAfjHB_w/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzeCz1vynoGYf23sIqBFUG8VVQCzHFEx2iYXL6PrheWzGARa8XP9v2dhsPR5FXglDKlmg/exec';
 // Example: 'https://script.google.com/macros/s/AKfycbx.../exec'
 
 // ── State ────────────────────────────────────────────────
@@ -519,9 +519,21 @@ const isConfigured = () => API_URL && !API_URL.includes('YOUR_');
 
 async function apiFetch(params) {
   const url = API_URL + '?' + new URLSearchParams(params);
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('Network error');
-  return r.json();
+  const r = await fetch(url, {
+    method: 'GET',
+    redirect: 'follow',
+    cache: 'no-cache'
+  });
+  if (!r.ok) {
+    const text = await r.text().catch(() => 'Unknown error');
+    throw new Error(`HTTP ${r.status}: ${text.substring(0, 100)}`);
+  }
+  const text = await r.text();
+  try {
+    return JSON.parse(text);
+  } catch(e) {
+    throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+  }
 }
 
 async function apiPost(body) {
@@ -561,8 +573,9 @@ async function loadAll() {
     renderCards();
     updateStats();
   } catch(e) {
-    setSyncState('error', 'Sync failed — check URL or connection');
-    toast('Sync failed. Check your API URL.', 'err');
+    console.error('Sync error:', e);
+    setSyncState('error', 'Sync failed: ' + e.message.substring(0, 50));
+    toast('Sync failed. Check browser console.', 'err');
   }
 }
 
